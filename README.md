@@ -31,26 +31,26 @@ KUcrowdy는 점심시간마다 식당을 순례하고, 시험 기간엔 라운�
 | **Auth & Logic** | Firebase 시간 인증, localStorage, JS UI 제어 |
 
 ## 📂 프로젝트 구조
-```
-/ (프로젝트 루트)
+/  (프로젝트 루트)
 │
-│
-├─ assets/               ← 이미지, 폰트, 아이콘 등
+├─ assets/
 │   └─ images/
 │       └─ korea_univ.jpg
 │
-├─ css/                  ← 전역 CSS (Tailwind 외에 추가 스타일)
+├─ css/
 │   └─ style.css
 │
-├─ js/                   ← 자바스크립트 모듈
-│   ├─ mypage.js
-│   ├─ resultpopup.js
-│   └─ votepopup.js
-│        
-├─ crowdymap.html
-├─ add_place.html
-├─ votepopup_pre.html
-├─ index.html
-└─ README.md             ← 프로젝트 개요, 실행 방법, API 키 설정 팁 등
+├─ js/
+│   ├─ mypage.js           ← 포인트/열람권 관련 기능
+│   ├─ resultpopup.js      ← 장소 투표 결과 팝업 로직
+│   └─ votepopup.js        ← 투표창 열기 및 투표 처리
+│
+├─ add_place.html          ← 장소 추가 (관리자용/테스트용)
+├─ crowdymap.html          ← 지도 및 혼잡도 마커 표시 메인 페이지
+├─ index.html              ← 진입 및 사용자용 메인 페이지
+├─ votepopup_pre.html      ← 투표 팝업 UI 미리보기
+│
+├─ LICENSE
+└─ README.md
 
 ```
