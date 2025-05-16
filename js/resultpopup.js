@@ -5,7 +5,8 @@ import {
   getDocs,
   query,
   orderBy,
-  limit
+  limit,
+  where
 } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
 const db = getFirestore();
@@ -21,15 +22,18 @@ export async function openResultPopup(placeId, placeName) {
   // 2) Firestore에서 votesHistory 컬렉션 읽어오기
   const votesCol = collection(db, "places", placeId, "votesHistory");
   // (최신 100개만, 필요 없으면 limit 제거)
-  const votesSnap = await getDocs(query(votesCol, orderBy("timestamp", "desc"), limit(100)));
-  const oneHourAgo = Date.now() - 60 * 60 * 1000;
-  const votes = votesSnap.docs
-    .map(doc => {
-      const data = doc.data();
-      const ts = data.timestamp?.toDate().getTime() || 0;
-      return ts >= oneHourAgo ? data.result : null;
-    })
-    .filter(v => v !== null);
+  
+  // 1시간 전 시점 계산
+  const oneHourAgoDate = new Date(Date.now() - 60 * 60 * 1000);
+  // Firestore 쿼리 자체에 where 절 걸기 (timestamp >= 1시간 전)
+  const votesQuery = query(
+    votesCol,
+    where("timestamp", ">=", oneHourAgoDate),
+    orderBy("timestamp", "desc")
+    // 필요하다면 limit(100) 붙여도 OK
+  );
+  const votesSnap = await getDocs(votesQuery);
+  const votes = votesSnap.docs.map(doc => doc.data().result);
   // 3) 통계 계산
   const counts = { 여유: 0, 보통: 0, 혼잡: 0 };
   votes.forEach(v => {
