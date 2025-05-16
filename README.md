@@ -31,6 +31,7 @@ KUcrowdy는 점심시간마다 식당을 순례하고, 시험 기간엔 라운�
 | **Auth & Logic** | Firebase 시간 인증, localStorage, JS UI 제어 |
 
 ## 📂 프로젝트 구조
+```
 /  (프로젝트 루트)
 │
 ├─ assets/
