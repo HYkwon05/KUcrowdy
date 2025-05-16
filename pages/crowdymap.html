@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- tailwind & colors -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            crimson: '#B11016',
+            crimsonlight: '#f4d3d5'
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- ───────────── marker-label 스타일 ───────────── -->
+  <style>
+    .marker-label {
+      background: rgba(244,211,213,0.9);
+      padding: 2px 4px;
+      border-radius: 2px;
+      pointer-events: none;
+      font-size: 12px;
+      font-weight: bold;
+      color: #000;
+      white-space: nowrap;   /* 줄 바꿈 없이 한 줄로 */
+      overflow: visible;     /* 넘치는 텍스트도 보이게 */
+      max-width: none;       /* 너비 제한 해제 */
+    }
+  </style>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {extend: {colors: { crimson: '#B11016', crimsonlight: '#f4d3d5' }}}
+    }
+  </script>
+  <title>KUcrowdy</title> 
+
+  <script>
+    window.initMap = function() {
+      console.error("initMap 호출됐지만, 아직 준비 안 됨");
+    }
+  </script>  
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-analytics.js";
+    
+    // Firestore 모듈 추가
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      doc, 
+      getDoc,
+      onSnapshot
+      // onSnapshot  // (실시간 업데이트 원하면)
+    } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyASvKyvfs280pdHW429o71hD8p4BgoYNM0",
+      authDomain: "ku-crowdy.firebaseapp.com",
+      projectId: "ku-crowdy",
+      storageBucket: "ku-crowdy.firebasestorage.app",
+      messagingSenderId: "300944597074",
+      appId: "1:300944597074:web:2b8675a14afca7887a3f8b",
+      measurementId: "G-68YKXBL9BY"
+    };
+    
+    const redMarker = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+    <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com -->
+    <path fill="#f53232" d="M215.7 499.2C267 435 384 279.4 384 192C384 86 
+      298 0 192 0S0 86 0 192c0 87.4 117 
+      243 168.3 307.2c12.3 15.3 35.1 15.3 
+      47.4 0zM192 128a64 64 0 1 1 0 128 
+      64 64 0 1 1 0-128z"/>
+  </svg>`;
+    const yellowMarker = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+    <path fill="#FFD43B" d="M215.7 499.2C267 435 384 279.4 384 192C384 86 
+    298 0 192 0S0 86 0 192c0 87.4 117 
+    243 168.3 307.2c12.3 15.3 35.1 15.3 
+    47.4 0zM192 128a64 64 0 1 1 0 128 
+    64 64 0 1 1 0-128z"/>
+</svg>`;
+    const greenMarker = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+    <path fill="#27b069" d="M215.7 499.2C267 435 384 279.4 384 192C384 86 
+    298 0 192 0S0 86 0 192c0 87.4 117 
+    243 168.3 307.2c12.3 15.3 35.1 15.3 
+    47.4 0zM192 128a64 64 0 1 1 0 128 
+    64 64 0 1 1 0-128z"/>
+</svg>`;
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    // Firestore 인스턴스 생성
+    const db = getFirestore(app);
+    const userRef = doc(db, "users", "default");
+
+    console.log("✅ Firebase + Firestore 연결 완료!");
+
+    async function checkAccessAndInit() {
+      const snap = await getDoc(userRef);
+      const data = snap.exists() ? snap.data() : {};
+      const now = new Date();
+
+      if (!data.accessExpires || data.accessExpires.toDate() < now) {
+        alert("⏰ 접근 권한이 없어요. 먼저 MY에서 열람권을 사용해주세요.");
+        // 권한 없으면 인덱스로 리다이렉트
+        window.location.href = "index.html";
+        return;
+      }
+        // 권한 유효: 지도 초기화
+      initMap();
+    }
+    window.checkAccessAndInit = checkAccessAndInit;
+
+    window.initMap = async () => {
+      // 1) 지도 띄우기
+      const mapCenter = { lat: 37.584561, lng: 127.029352 };
+      const map = new google.maps.Map(
+        document.getElementById("map"),
+        { zoom: 16.8, center: mapCenter }
+      );
+
+      // 2) places 컬렉션에서 모든 장소 문서 가져오기
+      const placesSnap = await getDocs(collection(db, "places"));
+
+      // 3) 각 장소마다 마커 생성 및 votesHistory 실시간 감시
+      for (const placeDoc of placesSnap.docs) {
+        const { name, lat, lng } = placeDoc.data();
+        const placeId = placeDoc.id;
+        const greyMarkerSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+          <path fill="#969696" d="M215.7 499.2C267 435 384 279.4 384 192C384 86 
+            298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 
+            35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/>
+        </svg>`;
+        // 마커 초기 생성 (초기엔 회색색으로, 곧바로 업데이트됩니다)
+        const marker = new google.maps.Marker({
+          position: { lat, lng },
+          map,
+          icon: {
+            url:
+              'data:image/svg+xml;charset=UTF-8,' +
+              encodeURIComponent(greyMarkerSvg),
+            scaledSize: new google.maps.Size(32, 32),
+            labelOrigin: new google.maps.Point(16, -8),
+          },
+        });
+
+        // hover 레이블
+        marker.addListener("mouseover", () => {
+          marker.setLabel({ text: name, className: "marker-label" });
+        });
+        marker.addListener("mouseout", () => {
+          marker.setLabel(null);
+        });
+
+        // votesHistory 문서 실시간 감시
+        const vhRef = doc(
+          db,
+          "places",
+          placeId,
+          "votesHistory",
+          "votesHistory"
+        );
+        onSnapshot(vhRef, (vhSnap) => {
+          // 맨 위 import에 doc, onSnapshot 있으면 OK
+          // 아래는 window.initMap 내부의 onSnapshot 부분만 발췌한 예시입니다.
+
+          // votesHistory 서브컬렉션 전체를 실시간 감시
+          const votesCol = collection(db, "places", placeId, "votesHistory");
+          onSnapshot(votesCol, snapshot => {
+            // 1) 최근 1시간 내 투표만 필터 (이전 예시 코드에서 가져온 변수)
+            const oneHourAgo = Date.now() - 60*60*1000;
+            const votes = snapshot.docs
+              .map(doc => {
+                const data = doc.data();
+                const ts = data.timestamp?.toDate().getTime() || 0;
+                return ts >= oneHourAgo ? data.result : null;
+              })
+              .filter(v => v !== null);
+
+            // 2) 투표 없으면 회색
+            if (votes.length === 0) {
+              marker.setIcon({
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(greyMarkerSvg),
+                scaledSize: new google.maps.Size(32,32),
+                labelOrigin: new google.maps.Point(16,-8)
+              });
+              return;
+            }
+
+            // 3) 카운트 집계
+            const counts = { 여유:0, 보통:0, 혼잡:0 };
+            votes.forEach(v => counts[v]++);
+
+            // 4) 최대 투표수 찾기
+            const maxCount = Math.max(counts['여유'], counts['보통'], counts['혼잡']);
+
+            // 5) 우선순위에 따른 후보군(동률) 필터링
+            //    순위 정의: 여유 < 보통 < 혼잡
+            const priority = ['여유','보통','혼잡'];
+            const tied = priority.filter(status => counts[status] === maxCount);
+
+            // 6) 최종 모드 선택: 동률이면 배열 끝쪽(가장 높은 우선순위) 선택
+            const mode = tied[tied.length - 1];
+
+            // 7) 아이콘 SVG 결정
+            const iconSvg = mode === '혼잡'
+              ? redMarker
+              : mode === '보통'
+                ? yellowMarker
+                : greenMarker;
+
+            // 8) 마커 업데이트
+            marker.setIcon({
+              url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(iconSvg),
+              scaledSize: new google.maps.Size(32,32),
+              labelOrigin: new google.maps.Point(16,-8)
+            });
+          });
+        });
+
+        // 클릭하면 팝업
+        marker.addListener("click", () => {
+          openResultPopup(placeId, name);
+        });
+      }
+    };
+
+      /*
+      // 1) places 컬렉션에서 한 번만 불러오기
+      getDocs(collection(db, "places"))
+        .then(snapshot => {
+          snapshot.docs.forEach(doc => {
+            const { name, lat, lng } = doc.data();
+
+            // 투표 데이터도 Firestore에 두었다면, 여기서 또 불러올 수 있고…
+            // 임시 votes 배열 대신 placeVote 컬렉션에서 가져오기
+
+            // (기존 SVG 아이콘 + getMode 로직 재사용)
+            const mode = getMode(votes);
+            const iconSvg = mode==='혼잡'?redMarker:mode==='보통'?yellowMarker:greenMarker;
+            new google.maps.Marker({
+              position:{lat,lng},
+              map,
+              title:name,
+              icon:{
+                url:'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(iconSvg),
+                scaledSize:new google.maps.Size(32,32)
+              }
+            });
+          });
+        });*/
+  </script>
+
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAJS-A7wr1m8xgJHS57jOqO4cmyYA42RK8&callback=checkAccessAndInit"
+    defer
+  ></script>
+ 
+
+  <script>
+    function togglePopup() {
+      const popup = document.getElementById("Mypopup");
+      popup.classList.toggle("hidden");
+    }
+
+    // [선택] 열람권 있으면 Crowdy Map 버튼 보이기
+    /*
+    const hasAccess = true; // 나중엔 Firebase 값으로 대체
+    if (hasAccess) {
+      document.getElementById("crowdyMapBtn").classList.remove("hidden");
+    }
+      */
+  </script>
+  
+  <script>
+    function getMode(arr){
+      const count={};
+      arr.forEach(vote => {
+        count[vote]=(count[vote]||0)+1;
+      });
+
+      let maxcount=0;
+      let mode=null;
+
+      for(const vote in count){
+        if(count[vote]>maxcount){
+          maxcount=count[vote];
+          mode=vote;
+        }
+      }
+
+      return mode;
+    }
+    // [테스트용 가짜 데이터] 실제 Firebase 연동 후에는 제거
+    /*
+    const votes = ['여유', '보통', '혼잡', '보통', '보통', '여유'];
+    const result = getMode(votes);
+    */
+  </script>
+  
+</head>
+<body class="relative bg-black text-white min-h-screen overflow-hidden">
+    <div class="absolute inset-0 bg-[url('/image_nextcon/korea_univ.jpg')] bg-cover bg-center opacity-30 brightness-60 z-0"></div>
+
+    <div class="relative z-10 flex flex-col min-h-screen">
+      <header class="flex justify-between items-center px-4 py-3 bg-white shadow relative">
+          <h1 onclick="location.href='index.html'" class="text-xl font-extrabold text-crimson cursor-pointer hover:text-crimsonlight">
+              KUcrowdy
+          </h1>
+          <div class="flex items-center gap-3">
+            <button id="crowdymap" class="bg-[#d13d47] font-semibold text-white px-3 py-1 rounded" onclick="location.href='crowdymap.html'">
+                Crowdy Map
+            </button>
+            <button onclick="togglePopup()" class="bg-red-0 font-semibold text-crimson px-3 py-1 rounded hover:bg-crimson hover:text-white">
+                MY
+            </button>
+          </div>
+          <div id="Mypopup" class="absolute right-4 top-16 bg-white shadow rounded p-4 hidden w-60 z-20">
+             <p class="font-semibold text-black">보유 포인트: <span id="pointDisplay"></span>1P</p>
+             <p class="font-semibold text-black mb-2">보유 열람권: <span id="ticketDisplay"></span>1장</p>
+             <button class="bg-crimson font-semibold text-white px-4 py-2 rounded w-full hover:bg-crimsonlight mb-2" onclick="purchaseTicket()">
+               열람권 구매하기
+             </button>
+             <button class="bg-yellow-300 font-semibold text-white px-4 py-2 rounded w-full hover:bg-yellow-200 mb-2" onclick="useTicket()">
+               열람권 사용하기
+             </button>
+          </div>
+
+  
+      </header>
+      <div class="flex-grow flex items-center justify-center p-6">
+        <div id="map" class="w-full max-w-4xl mx-auto h-[60vh] sm:h-[60vh] md:h-[65vh] lg:h-[70vh] bg-gray-100 rounded-2xl shadow-md border border-gray-300">
+        <!-- 지도 로딩 전 안내 텍스트 -->
+        <p class="text-center text-gray-600">지도 로딩 중...</p>
+        </div>
+      </div>
+
+      <div id="resultPopup" class="hidden fixed bg-white rounded p-4 w-72 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 shadow-lg">
+        <div class="flex justify-between items-center mb-2">
+          <h2 id="resultTitle" class="font-extrabold text-crimson text-lg">자하연</h2>
+          <button onclick="openRecentPopup()" class="text-xl text-gray-500 hover:text-crimson">＋</button>
+        </div>
+
+        <p class="text-sm font-semibold mb-2 text-gray-700">
+          현재 혼잡도: <span id="congestionStatus" class="font-semibold text-red-500">혼잡</span>
+        </p>
+      
+        <div class="space-y-2 text-sm text-gray-800 mb-3">
+          <div>
+            <span class="inline-block w-12">여유</span>
+            <div class="inline-block w-48 h-4 bg-gray-200 rounded">
+              <div id="bar-easy" class="h-4 bg-green-400 rounded" style="width: 0%"></div>
+            </div>
+            <span id="count-easy" class="ml-2">0표</span>
+          </div>
+          <div>
+            <span class="inline-block w-12">보통</span>
+            <div class="inline-block w-48 h-4 bg-gray-200 rounded">
+              <div id="bar-medium" class="h-4 bg-yellow-400 rounded" style="width: 0%"></div>
+            </div>
+            <span id="count-medium" class="ml-2">0표</span>
+          </div>
+          <div>
+            <span class="inline-block w-12">혼잡</span>
+            <div class="inline-block w-48 h-4 bg-gray-200 rounded">
+              <div id="bar-busy" class="h-4 bg-red-400 rounded" style="width: 0%"></div>
+            </div>
+            <span id="count-busy" class="ml-2">0표</span>
+          </div>
+        </div>
+
+        <button onclick="closeResultPopup()" class="w-full bg-gray-300 text-black font-semibold py-2 rounded hover:bg-gray-400">
+          닫기
+        </button>
+      </div>
+
+      <div id="recentPopup" class="hidden fixed top-1/2 right-10 -translate-y-1/2 bg-white rounded p-4 w-64 shadow-lg z-50">
+        <h3 class="text-center text-black font-bold text-base mb-2">최근 투표 기록</h3>
+        <ul id="recentVoteList" class="text-sm text-gray-700 space-y-1">
+        <!-- JS로 내용 추가됨 -->
+        </ul>
+        <button onclick="closeRecentPopup()" class="mt-4 w-full bg-gray-200 text-black font-semibold py-1.5 rounded hover:bg-gray-300">
+          닫기
+        </button>
+      </div>
+
+  </div>
+  <script type="module" src="./js_nextcon/mypage.js"></script>
+  <script type="module" src="./js_nextcon/resultpopup.js"></script>
+</body>
+</html>

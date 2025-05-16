@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>투표 팝업 미리보기</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            crimson: '#B11016',
+            crimsonlight: '#f4d3d5'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+
+  <div class="text-center font-sans w-48 bg-white shadow p-4 rounded">
+    <p class="font-semibold text-sm mb-2">혼잡도를 선택해주세요</p>
+    <div class="flex justify-between mb-3">
+      <div class="flex flex-col items-center gap-1">
+        <button class="w-8 h-8 rounded-full bg-green-400 hover:bg-green-500"></button>
+        <span class="font-semibold text-xs">여유</span>
+      </div>
+      <div class="flex flex-col items-center gap-1">
+        <button class="w-8 h-8 rounded-full bg-yellow-400 hover:bg-yellow-500"></button>
+        <span class="font-semibold text-xs">보통</span>
+      </div>
+      <div class="flex flex-col items-center gap-1">
+        <button class="w-8 h-8 rounded-full bg-red-400 hover:bg-red-500"></button>
+        <span class="font-semibold text-xs">혼잡</span>
+      </div>
+    </div>
+    <button class="text-sm px-3 py-1 rounded bg-crimson text-white font-semibold hover:bg-crimsonlight">
+      투표 완료
+    </button>
+  </div>
+
+</body>
+</html>

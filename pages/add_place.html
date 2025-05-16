@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>장소 추가 (개발자용)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { crimson: '#B11016', crimsonlight: '#f4d3d5' } } }
+    }
+  </script>
+</head>
+<body class="bg-gray-100 p-8">
+  <div class="max-w-md mx-auto bg-white shadow p-6 rounded">
+    <h1 class="text-2xl font-bold text-crimson mb-4">새 장소 추가 (개발자용)</h1>
+    <form id="placeForm" class="space-y-4">
+      <div>
+        <label for="placeName" class="block font-semibold mb-1">장소 이름</label>
+        <input type="text" id="placeName" class="w-full border rounded px-3 py-2" placeholder="예: 중앙도서관" required>
+      </div>
+      <div>
+        <label for="placeLat" class="block font-semibold mb-1">위도 (lat)</label>
+        <input type="number" step="any" id="placeLat" class="w-full border rounded px-3 py-2" placeholder="예: 37.584561" required>
+      </div>
+      <div>
+        <label for="placeLng" class="block font-semibold mb-1">경도 (lng)</label>
+        <input type="number" step="any" id="placeLng" class="w-full border rounded px-3 py-2" placeholder="예: 127.029352" required>
+      </div>
+      <button type="submit" class="w-full bg-crimson text-white font-semibold py-2 rounded hover:bg-crimsonlight">추가하기</button>
+    </form>
+    <p id="feedback" class="mt-4 text-center text-sm"></p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+
+    // 기존 프로젝트 설정 그대로 사용
+    const firebaseConfig = {
+      apiKey: "AIzaSyASvKyvfs280pdHW429o71hD8p4BgoYNM0",
+      authDomain: "ku-crowdy.firebaseapp.com",
+      projectId: "ku-crowdy",
+      storageBucket: "ku-crowdy.firebasestorage.app",
+      messagingSenderId: "300944597074",
+      appId: "1:300944597074:web:2b8675a14afca7887a3f8b",
+      measurementId: "G-68YKXBL9BY"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const form = document.getElementById('placeForm');
+    const feedback = document.getElementById('feedback');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      feedback.textContent = '';
+      const name = document.getElementById('placeName').value.trim();
+      const lat  = parseFloat(document.getElementById('placeLat').value);
+      const lng  = parseFloat(document.getElementById('placeLng').value);
+      try {
+        await addDoc(collection(db, 'places'), { name, lat, lng });
+        feedback.textContent = '✅ 새 장소가 성공적으로 추가되었습니다!';
+        feedback.className = 'mt-4 text-center text-green-600';
+        form.reset();
+      } catch (err) {
+        console.error(err);
+        feedback.textContent = '❌ 장소 추가 중 오류가 발생했습니다.';
+        feedback.className = 'mt-4 text-center text-red-600';
+      }
+    });
+  </script>
+</body>
+</html>
