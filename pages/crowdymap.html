@@ -311,15 +311,15 @@
   
 </head>
 <body class="relative bg-black text-white min-h-screen overflow-hidden">
-    <div class="absolute inset-0 bg-[url('/image_nextcon/korea_univ.jpg')] bg-cover bg-center opacity-30 brightness-60 z-0"></div>
+    <div class="absolute inset-0 bg-[url('/KUcrowdy/assets/images/korea_univ.jpg')] bg-cover bg-center opacity-30 brightness-60 z-0"></div>
 
     <div class="relative z-10 flex flex-col min-h-screen">
       <header class="flex justify-between items-center px-4 py-3 bg-white shadow relative">
-          <h1 onclick="location.href='index.html'" class="text-xl font-extrabold text-crimson cursor-pointer hover:text-crimsonlight">
+          <h1 onclick="location.href='/KUcrowdy/index.html'" class="text-xl font-extrabold text-crimson cursor-pointer hover:text-crimsonlight">
               KUcrowdy
           </h1>
           <div class="flex items-center gap-3">
-            <button id="crowdymap" class="bg-[#d13d47] font-semibold text-white px-3 py-1 rounded" onclick="location.href='crowdymap.html'">
+            <button id="crowdymap" class="bg-[#d13d47] font-semibold text-white px-3 py-1 rounded" onclick="location.href='/KUcrowdy/pages/crowdymap.html'">
                 Crowdy Map
             </button>
             <button onclick="togglePopup()" class="bg-red-0 font-semibold text-crimson px-3 py-1 rounded hover:bg-crimson hover:text-white">
@@ -396,7 +396,8 @@
       </div>
 
   </div>
-  <script type="module" src="./js_nextcon/mypage.js"></script>
-  <script type="module" src="./js_nextcon/resultpopup.js"></script>
+  
+  <script type="module" src="/KUcrowdy/js/mypage.js"></script>
+  <script type="module" src="/KUcrowdy/js/resultpopup.js"></script>
 </body>
 </html>

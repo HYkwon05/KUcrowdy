@@ -1,4 +1,4 @@
-// js_nextcon/mypage.js
+// js/mypage.js
 import {
   getFirestore,
   doc,
@@ -53,7 +53,7 @@ async function useTicket() {
       accessExpires: expiresAt
     });
     alert("✅ 열람권을 사용했습니다! 30분 동안 Map에 접근할 수 있어요.");
-    window.location.href = "crowdymap.html";
+    window.location.href = "/KUcrowdy/pages/crowdymap.html";
   } else {
     alert("❌ 보유한 열람권이 없습니다!");
   }
