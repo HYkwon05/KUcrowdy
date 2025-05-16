@@ -34,8 +34,6 @@ KUcrowdy는 점심시간마다 식당을 순례하고, 시험 기간엔 라운�
 ```
 / (프로젝트 루트)
 │
-├─ .vscode/
-│   └─ settings.json
 │
 ├─ assets/               ← 이미지, 폰트, 아이콘 등
 │   └─ images/
