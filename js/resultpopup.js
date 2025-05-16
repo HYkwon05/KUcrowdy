@@ -22,8 +22,14 @@ export async function openResultPopup(placeId, placeName) {
   const votesCol = collection(db, "places", placeId, "votesHistory");
   // (최신 100개만, 필요 없으면 limit 제거)
   const votesSnap = await getDocs(query(votesCol, orderBy("timestamp", "desc"), limit(100)));
-  const votes = votesSnap.docs.map(doc => doc.data().result);
-
+  const oneHourAgo = Date.now() - 60 * 60 * 1000;
+  const votes = votesSnap.docs
+    .map(doc => {
+      const data = doc.data();
+      const ts = data.timestamp?.toDate().getTime() || 0;
+      return ts >= oneHourAgo ? data.result : null;
+    })
+    .filter(v => v !== null);
   // 3) 통계 계산
   const counts = { 여유: 0, 보통: 0, 혼잡: 0 };
   votes.forEach(v => {
