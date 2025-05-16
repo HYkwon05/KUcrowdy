@@ -50,11 +50,11 @@ KUcrowdy는 점심시간마다 식당을 순례하고, 시험 기간엔 라운�
 │   └─ votepopup.js
 │
 ├─ pages/                ← HTML 파일 모음
-│   ├─ index.html
 │   ├─ crowdymap.html
 │   ├─ add_place.html
 │   └─ votepopup_pre.html
 │
+├─ index.html
 └─ README.md             ← 프로젝트 개요, 실행 방법, API 키 설정 팁 등
 
 ```
