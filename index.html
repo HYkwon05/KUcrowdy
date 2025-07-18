@@ -7,18 +7,18 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
   <style>
     .marker-label {
-      /* 살짝 배경을 넣고 싶으면: */
+
       background: rgba(244, 211, 213, 0.9);
       padding: 2px 4px;
       border-radius: 2px;
-      /* pointer-events 막아서 hover 이벤트가 가로막히지 않게 */
+      
       pointer-events: none;
       font-size: 12px;
       font-weight: bold;
       color: #000;
-      white-space: nowrap;   /* 줄 바꿈 없이 한 줄로 */
-      overflow: visible;     /* 넘치는 텍스트도 보이게 */
-      max-width: none;       /* 너비 제한 해제 */
+      white-space: nowrap;   
+      overflow: visible;    
+      max-width: none;      
     }
   </style>
 
@@ -59,10 +59,10 @@
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const db = getFirestore(app);
-    // (A) “users/default” 문서 참조
+    
     const userRef = doc(db, "users", "default");
 
-    // (B) 문서가 없으면 기본값 세팅
+    
     async function initUserDoc() {
       const snap = await getDoc(userRef);
       if (!snap.exists()) {
@@ -71,7 +71,7 @@
     }
     initUserDoc();
 
-      // ── initMap 정의 ──
+      
     window.initMap = async () => {
       const mapCenter = {lat: 37.584561, lng: 127.029352};
       const map = new google.maps.Map(
@@ -79,7 +79,7 @@
         {zoom: 16.8,center: mapCenter}
       );
 
-      // Firestore places 컬렉션에서 문서들 가져오기
+     
       const greyMarkerSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
         <path fill="#969696" d="M215.7 499.2C267 435 384 279.4 384 192C384 86 
           298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 
@@ -88,7 +88,7 @@
       const iconBase = {
         url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(greyMarkerSvg),
         scaledSize: new google.maps.Size(32, 32),
-        // ← 레이블을 아이콘보다 8px 위로 띄우기 (16, -8)
+        
         labelOrigin: new google.maps.Point(16, -8)
       };
 
@@ -103,7 +103,7 @@
           icon: iconBase
         });
 
-        // ▶ 커서 올리면 label 생성
+        
         marker.addListener('mouseover', () => {
           marker.setLabel({
             text: name,
@@ -114,12 +114,12 @@
           });
         });
 
-        // ▶ 커서 내리면 label 제거
+        
         marker.addListener('mouseout', () => {
           marker.setLabel(null);
         });
         
-        // 기존 클릭 로직
+        
         marker.addListener("click", () => {
           openvote(placeId, name);
         });
@@ -139,8 +139,8 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-    // [선택] 열람권 있으면 Crowdy Map 버튼 보이기
-      const hasAccess = true; // 나중엔 Firebase 값으로 대체
+    
+      const hasAccess = true; 
       if (hasAccess) {
         document.getElementById("crowdymap").classList.remove("hidden");
       }
